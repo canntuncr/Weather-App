@@ -1,0 +1,21 @@
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)), url('/images/arkaplan.png') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    font-family: 'Arial', sans-serif;
+}
+.container {
+    margin-top: 100px;
+}
+.card {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50px;
+}
+.weather-icon {
+    font-size: 100px;
+    color: blue;
+    padding-bottom: 10px;
+}
+.card-text {
+    font-size: 1.2em;
+}
