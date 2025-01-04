@@ -4,8 +4,9 @@
     <title>Hava Durumu Uygulaması</title>
     <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Weather Icons CSS -->
+    <!-- Hava durumu ikonları için gerekli CSS dosyası -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.10/css/weather-icons.min.css">
+    <!-- Özel stiller için harici CSS dosyası -->
     <link rel="stylesheet" type="text/css" href="/css/index.css">
 </head>
 <body>
@@ -14,12 +15,34 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h1 class="card-title text-center">Hava Durumu </h1>
-                    <form action="/weather" method="get">
+                    <h1 class="card-title text-center">Hava Durumu</h1>
+                    <!-- Hava durumu bilgisi için gerekli bilgileri alan form yapısı -->
+                    <form id="weatherForm" action="/weather" method="get">
+                        <!-- Ülke seçme bloğu -->
                         <div class="form-group">
-                            <input type="text" class="form-control" name="city" placeholder="Şehir ismi giriniz" required>
+                            <label for="countrySelect">Ülkeler:</label>
+                            <select id="countrySelect" class="form-control">
+                                <option value="" disabled selected>Bir ülke seçiniz</option>
+                                <!-- Thymeleaf kullanılarak ülkeler listesinden değerler dinamik olarak yüklenecek -->
+                                <option th:each="country : ${countries}"
+                                        th:value="${country.geonameId}"
+                                        th:text="${country.countryName}">
+                                </option>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block">Hava durumunu göster</button>
+
+                        <!-- Şehir seçme bloğu -->
+                        <div class="form-group">
+                            <label for="citySelect">Şehirler:</label>
+                            <select id="citySelect" name="city" class="form-control">
+                                <option value="" disabled selected>Lütfen önce bir ülke seçiniz</option>
+                            </select>
+                        </div>
+
+                        <!-- Hava durumu sayfasına yönlendirme butonu -->
+                        <button type="submit" class="btn btn-primary btn-block" id="submit-btn" disabled>
+                            Hava Durumunu Göster
+                        </button>
                     </form>
                 </div>
             </div>
@@ -27,9 +50,46 @@
     </div>
 </div>
 
-<!-- Bootstrap JS and dependencies -->
+<!-- JavaScript kütüphaneleri -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    // Ülke seçildiğinde şehirleri güncelleme işlevi
+    document.getElementById('countrySelect').addEventListener('change', function () {
+        const geonameId = this.value; // Seçilen ülkenin ID'sini al
+        const citySelect = document.getElementById('citySelect'); // Şehir dropdown'u
+        const submitBtn = document.getElementById('submit-btn'); // Gönderme butonu
+
+        // Butonu devre dışı bırak ve şehir seçeneklerini sıfırla
+        submitBtn.disabled = true;
+        citySelect.innerHTML = '<option value="" disabled selected>Yükleniyor...</option>';
+
+        // Seçilen ülkeye göre şehirleri getir
+        fetch(`/api/cities?country=${geonameId}`)
+            .then(response => response.json()) // JSON formatında cevap al
+            .then(data => {
+                // Şehir seçeneklerini güncelle
+                citySelect.innerHTML = '<option value="" disabled selected>Şehir seçiniz</option>';
+                data.geonames.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.toponymName; // Şehir ismini değer olarak kullan
+                    option.textContent = city.toponymName; // Şehir ismini göster
+                    citySelect.appendChild(option);
+                });
+
+                // Şehir seçildiğinde butonu aktif hale getir
+                citySelect.addEventListener('change', function () {
+                    if (citySelect.value) {
+                        submitBtn.disabled = false; // Butonu aktif et
+                    }
+                });
+            })
+            .catch(err => {
+                console.error(err); // Hata durumunda konsola yazdır
+                citySelect.innerHTML = '<option value="" disabled>Şehirler yüklenirken hata oluştu</option>';
+            });
+    });
+</script>
 </body>
 </html>
